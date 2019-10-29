@@ -43,12 +43,7 @@ describe("/api", () => {
         .expect(200)
         .expect(({ body: { user } }) => {
           expect(user).to.be.an("object");
-          expect(user).to.eql({
-            username: "icellusedkars",
-            avatar_url:
-              "https://avatars2.githubusercontent.com/u/24604688?s=460&v=4",
-            name: "sam"
-          });
+          expect(user).to.have.keys("username", "avatar_url", "name");
         });
     });
     describe("Errors", () => {
@@ -71,6 +66,26 @@ describe("/api", () => {
         });
         return Promise.all(invalidMethods);
       });
+    });
+  });
+  describe("/articles/:article_id", () => {
+    it("GET returns status 200 and the specified article data", () => {
+      return request(app)
+        .get("/api/articles/1")
+        .expect(200)
+        .expect(({ body: { article } }) => {
+          expect(article).to.be.an("object");
+          expect(article).to.have.keys(
+            "article_id",
+            "title",
+            "body",
+            "votes",
+            "topic",
+            "author",
+            "created_at",
+            "comment_count"
+          );
+        });
     });
   });
 });
