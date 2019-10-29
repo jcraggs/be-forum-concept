@@ -9,8 +9,25 @@ const fetchArticleById = inputArticle_id => {
     .count("comment_id as comment_count")
     .groupBy("articles.article_id")
     .then(response => {
+      if (!response[0]) {
+        return Promise.reject({
+          status: 404,
+          msg: "Error: article does not exist"
+        });
+      } else return response[0];
+    });
+};
+
+const updateArticleVotes = (update, inputArticle_id) => {
+  return connection
+    .first()
+    .from("articles")
+    .where({ article_id: inputArticle_id })
+    .increment("votes", update.inc_votes)
+    .returning("*")
+    .then(response => {
       return response[0];
     });
 };
 
-module.exports = { fetchArticleById };
+module.exports = { fetchArticleById, updateArticleVotes };

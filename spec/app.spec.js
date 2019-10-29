@@ -62,7 +62,12 @@ describe("/api", () => {
         const invalidMethods = methods.map(item => {
           return request(app)
             [item]("/api/users/icellusedkars")
-            .expect(405);
+            .expect(405)
+            .then(response => {
+              expect(response.body).to.eql({
+                msg: "Method not allowed"
+              });
+            });
         });
         return Promise.all(invalidMethods);
       });
@@ -86,6 +91,56 @@ describe("/api", () => {
             "comment_count"
           );
         });
+    });
+    it("PATCH returns status 200 and the item with the updated vote count", () => {
+      return request(app)
+        .patch("/api/articles/1")
+        .send({ inc_votes: 1234 })
+        .expect(200)
+        .then(response => {
+          console.log(response.body);
+          expect(response.body).to.be.an("object");
+          expect(response.body).to.have.keys(
+            "article_id",
+            "title",
+            "body",
+            "votes",
+            "topic",
+            "author",
+            "created_at"
+          );
+          expect(response.body.votes).to.equal(1334);
+        });
+    });
+    describe("Errors", () => {
+      it("GET returns status 404 and message explaining that the article_id does not exist", () => {
+        return request(app)
+          .get("/api/articles/9999999")
+          .expect(404)
+          .then(response => {
+            expect(response.body).to.eql({
+              msg: "Error: article does not exist"
+            });
+          });
+      });
+      it("GET returns status 400 and with acompanying message explaining the incorrect syntax input", () => {
+        return request(app)
+          .get("/api/articles/invalid-id")
+          .expect(400)
+          .then(response => {
+            expect(response.body).to.eql({
+              msg: 'invalid input syntax for integer: "invalid-id"'
+            });
+          });
+      });
+      it("DELETE method on an article endpoint returns status 405 and a message saying method not allowed", () => {
+        return request(app)
+          .delete("/api/articles/1")
+          .expect(405)
+          .then(response => {
+            expect(response.body).to.eql({ msg: "Method not allowed" });
+          });
+      });
     });
   });
 });

@@ -16,10 +16,10 @@ app.use("/api", apiRouter);
 You need the following, see README for what the endpoint should do
 GET /api/topics -done
 
-GET /api/users/:username - done + 404 error with a username that does not exist + 405 for methods not allowed
+GET /api/users/:username - done + 404 and 405 errors built
 
-GET /api/articles/:article_id
-PATCH /api/articles/:article_id
+GET /api/articles/:article_id - done + 404,400 and 405 errors built
+PATCH /api/articles/:article_id 
 
 POST /api/articles/:article_id/comments
 GET /api/articles/:article_id/comments
