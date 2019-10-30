@@ -76,25 +76,32 @@ const createComment = (inputComment, inputArticle_id) => {
     });
 };
 
-const fetchComments = inputArticle_id => {
-  const commentPromise = connection
-    .select("comment_id", "votes", "created_at", "author", "body")
-    .from("comments")
-    .where({ article_id: inputArticle_id })
-    .returning("*");
-  const checkArticlePromise = checkArticleIdExists(inputArticle_id);
-  return Promise.all([commentPromise, checkArticlePromise]).then(
-    ([comments, articleFlag]) => {
-      if (comments.length) return comments;
-      if (comments.length === 0 && articleFlag === true) {
-        return [];
-      } else
-        return Promise.reject({
-          status: 404,
-          msg: `Error: article "${inputArticle_id}" does not exist`
-        });
-    }
-  );
+const fetchComments = (inputArticle_id, sort_by, order) => {
+  console.log(order);
+  console.log(sort_by);
+
+  if (order === "asc" || order === "desc" || order === undefined) {
+    const commentPromise = connection
+      .select("comment_id", "votes", "created_at", "author", "body")
+      .from("comments")
+      .where({ article_id: inputArticle_id })
+      .orderBy(sort_by || "created_at", order || "desc")
+      .returning("*");
+    const checkArticlePromise = checkArticleIdExists(inputArticle_id);
+    return Promise.all([commentPromise, checkArticlePromise]).then(
+      ([comments, articleFlag]) => {
+        if (comments.length) return comments;
+        if (comments.length === 0 && articleFlag === true) {
+          return [];
+        } else
+          return Promise.reject({
+            status: 404,
+            msg: `Error: article "${inputArticle_id}" does not exist`
+          });
+      }
+    );
+  }
+  console.log("lets error");
 };
 
 const checkArticleIdExists = input => {

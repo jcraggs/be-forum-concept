@@ -1,5 +1,7 @@
 process.env.NODE_ENV = "test";
 const { expect } = require("chai");
+const chai = require("chai");
+chai.use(require("chai-sorted"));
 const request = require("supertest");
 const app = require("../app.js");
 
@@ -223,7 +225,7 @@ describe("/api", () => {
             });
           });
       });
-      it("GET returns status 200 and an object with a message 'No comments exist' when given a valid article_id which has no comments", () => {
+      it("GET returns status 200 and an empty array when given a valid article_id which has no comments", () => {
         return request(app)
           .get("/api/articles/2/comments")
           .expect(200)
@@ -231,14 +233,30 @@ describe("/api", () => {
             expect(response.body).to.eql([]);
           });
       });
-      // it("GET query 'sort_by' returns status 200 and an array of the comments sorted by any valid input (defaulting to created_at)", () => {
-      //   return request(app)
-      //     .get("/api/articles/1/comments?sort_by=votes")
-      //     .expect(200);
-      //   // .then(response => {
-      //   //   console.log(response);
-      //   // });
-      // });
+      it("GET query 'sort_by=votes' returns status 200 and an array of the comments sorted by votes", () => {
+        return request(app)
+          .get("/api/articles/1/comments?sort_by=votes")
+          .expect(200)
+          .then(response => {
+            expect(response.body).to.be.descendingBy("votes");
+          });
+      });
+      it("GET query with no 'sort_by or order' specified returns status 200 and an array of the comments sorted by 'created_at' in descending (the default)", () => {
+        return request(app)
+          .get("/api/articles/1/comments")
+          .expect(200)
+          .then(response => {
+            expect(response.body).to.be.descendingBy("created_at");
+          });
+      });
+      it("GET query with 'order' specified as ascending returns status 200 and an array of the comments sorted by created_at (the default) in ascending order", () => {
+        return request(app)
+          .get("/api/articles/1/comments/?order=asc")
+          .expect(200)
+          .then(response => {
+            expect(response.body).to.be.ascendingBy("created_at");
+          });
+      });
       describe("Errors", () => {
         it("POST returns 400 when either post send keys are invalid", () => {
           return request(app)
@@ -345,6 +363,14 @@ describe("/api", () => {
               expect(response.body).to.eql({
                 msg: 'invalid input syntax for integer: "not-a-valid-article"'
               });
+            });
+        });
+        it("GET with bad query returns", () => {
+          return request(app)
+            .get("/api/articles/1/comments?order=not-desc-or-asc")
+            .expect(400)
+            .then(response => {
+              console.log(response);
             });
         });
       });

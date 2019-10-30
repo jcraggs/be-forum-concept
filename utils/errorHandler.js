@@ -16,9 +16,9 @@ exports.methodNotAllowed = (req, res, next) => {
 };
 
 exports.handlePSQLErrors = (err, req, res, next) => {
-  //console.log(err);
+  console.log(err);
   if (err.code) {
-    //console.log("in PSQL errors");
+    console.log("in PSQL errors");
     const createMessage = err => {
       return err.message.split(" - ")[1];
     };
