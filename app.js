@@ -19,7 +19,7 @@ GET /api/topics -done
 GET /api/users/:username - done + 404 and 405 errors built
 
 GET /api/articles/:article_id - done + 404,400 and 405 errors built
-PATCH /api/articles/:article_id 
+PATCH /api/articles/:article_id - done with 404 and 3x 400 errors built
 
 POST /api/articles/:article_id/comments
 GET /api/articles/:article_id/comments

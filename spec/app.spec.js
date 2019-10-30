@@ -98,7 +98,6 @@ describe("/api", () => {
         .send({ inc_votes: 1234 })
         .expect(200)
         .then(response => {
-          console.log(response.body);
           expect(response.body).to.be.an("object");
           expect(response.body).to.have.keys(
             "article_id",
@@ -112,6 +111,7 @@ describe("/api", () => {
           expect(response.body.votes).to.equal(1334);
         });
     });
+    it("", () => {});
     describe("Errors", () => {
       it("GET returns status 404 and message explaining that the article_id does not exist", () => {
         return request(app)
@@ -139,6 +139,51 @@ describe("/api", () => {
           .expect(405)
           .then(response => {
             expect(response.body).to.eql({ msg: "Method not allowed" });
+          });
+      });
+      it("PATCH method on an article with invalid send object value returns status 400 and a message saying that input syntax for patch key should be a number ", () => {
+        return request(app)
+          .patch("/api/articles/1")
+          .send({ inc_votes: "not a number" })
+          .expect(400)
+          .then(response => {
+            expect(response.body).to.eql({
+              msg:
+                "Error: update value input for votes patch method should be an integer"
+            });
+          });
+      });
+      it("PATCH method on an article with invalid send object key returns status 400 and a message saying that the update key is invalid", () => {
+        return request(app)
+          .patch("/api/articles/1")
+          .send({ badKey: 1 })
+          .expect(400)
+          .then(response => {
+            expect(response.body).to.eql({
+              msg: `Error: the sent patch key "badKey" is invalid. The input for the send patch request on the "/api/articles/:article_id" end point is limited to changing vote counts and therefore must be formatted as follows: { 'inc_votes': [integer] }`
+            });
+          });
+      });
+      it("PATCH method on an article which doesn't exist returns status 404 and a message saying patched failed- article does not exist", () => {
+        return request(app)
+          .patch("/api/articles/9999999")
+          .send({ inc_votes: 123 })
+          .expect(404)
+          .then(response => {
+            expect(response.body).to.eql({
+              msg: "Error: patch failed, article does not exist"
+            });
+          });
+      });
+      it("PATCH method with a bad url input where article_id should be returns status 400 and a message explaining the bad request", () => {
+        return request(app)
+          .patch("/api/articles/invalid-article-id")
+          .send({ inc_votes: 123 })
+          .expect(400)
+          .then(response => {
+            expect(response.body).to.eql({
+              msg: 'invalid input syntax for integer: "invalid-article-id"'
+            });
           });
       });
     });
