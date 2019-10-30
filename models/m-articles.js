@@ -53,4 +53,27 @@ const updateArticleVotes = (update, inputArticle_id) => {
     });
 };
 
-module.exports = { fetchArticleById, updateArticleVotes };
+const createComment = (inputComment, inputArticle_id) => {
+  inputKeys = Object.keys(inputComment);
+  if (!inputComment.username || !inputComment.body || inputKeys.length > 2) {
+    return Promise.reject({
+      status: 400,
+      msg: `Error: post:send request syntax invalid. Format should be { username: [author], body:[comment text] }`
+    });
+  }
+  let newComment = {
+    author: inputComment.username,
+    article_id: inputArticle_id,
+    body: inputComment.body
+  };
+
+  return connection
+    .insert(newComment)
+    .into("comments")
+    .returning("*")
+    .then(response => {
+      return response[0];
+    });
+};
+
+module.exports = { fetchArticleById, updateArticleVotes, createComment };

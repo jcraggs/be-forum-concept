@@ -16,6 +16,7 @@ exports.methodNotAllowed = (req, res, next) => {
 };
 
 exports.handlePSQLErrors = (err, req, res, next) => {
+  //console.log(err);
   if (err.code) {
     console.log("in PSQL errors");
     const createMessage = err => {
@@ -26,6 +27,10 @@ exports.handlePSQLErrors = (err, req, res, next) => {
       "22P02": {
         status: 400,
         msg: createMessage(err)
+      },
+      "23503": {
+        status: 400,
+        msg: err.detail + " [Violates foreign key constraint]"
       }
     };
 

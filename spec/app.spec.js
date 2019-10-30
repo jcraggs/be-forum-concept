@@ -29,7 +29,6 @@ describe("/api", () => {
         .get("/api/not-a-route")
         .expect(404)
         .then(response => {
-          console.log(response.body);
           expect(response.body).to.eql({
             msg: "Error: Page not found"
           });
@@ -57,7 +56,7 @@ describe("/api", () => {
             });
           });
       });
-      it("DELETE/POST/PATCH method on a username endpoint returns status 405 and a message saying method not allowed", () => {
+      it("DELETE/POST/PATCH method on the /api/users/:username endpoint returns status 405 and a message saying method not allowed", () => {
         const methods = ["delete", "post", "patch"];
         const invalidMethods = methods.map(item => {
           return request(app)
@@ -111,7 +110,6 @@ describe("/api", () => {
           expect(response.body.votes).to.equal(1334);
         });
     });
-    it("", () => {});
     describe("Errors", () => {
       it("GET returns status 404 and message explaining that the article_id does not exist", () => {
         return request(app)
@@ -185,6 +183,117 @@ describe("/api", () => {
               msg: 'invalid input syntax for integer: "invalid-article-id"'
             });
           });
+      });
+    });
+    describe.only("/articles/:article_id/comments", () => {
+      it("POST returns status 201 and the item which has been posted", () => {
+        return request(app)
+          .post("/api/articles/1/comments")
+          .send({ username: "butter_bridge", body: "posting a test comment" })
+          .expect(201)
+          .then(response => {
+            expect(response.body).to.have.keys([
+              "comment_id",
+              "author",
+              "article_id",
+              "votes",
+              "created_at",
+              "body"
+            ]);
+            expect(response.body.author).to.eql("butter_bridge");
+            expect(response.body.votes).to.eql(0);
+            expect(response.body.article_id).to.eql(1);
+            expect(response.body.body).to.eql("posting a test comment");
+          });
+      });
+      describe("Errors", () => {
+        it("POST returns 400 when either post send keys are invalid", () => {
+          return request(app)
+            .post("/api/articles/1/comments")
+            .send({
+              username: "butter_bridge",
+              badBodyKey: "posting a test comment"
+            })
+            .expect(400)
+            .then(response => {
+              expect(response.body).to.eql({
+                msg:
+                  "Error: post:send request syntax invalid. Format should be { username: [author], body:[comment text] }"
+              });
+            });
+        });
+        it("POST returns generated psql error message when trying to post with a username that does not exist in the data-base", () => {
+          return request(app)
+            .post("/api/articles/1/comments")
+            .send({ username: "not-a-valid-username", body: "test comment" })
+            .expect(400)
+            .then(response => {
+              expect(response.body).to.eql({
+                msg:
+                  'Key (author)=(not-a-valid-username) is not present in table "users". [Violates foreign key constraint]'
+              });
+            });
+        });
+        it("POST returns 400 and an error message saying the post:send request syntax invalid when attempting to send more than the username and body keys", () => {
+          request(app)
+            .post("/api/articles/1/comments")
+            .send({
+              username: "butter_bridge",
+              body: "posting a test comment",
+              extraKey: "this should not be here"
+            })
+            .expect(400)
+            .then(response => {
+              expect(response.body).to.eql({
+                msg:
+                  "Error: post:send request syntax invalid. Format should be { username: [author], body:[comment text] }"
+              });
+            });
+        });
+        it("POST returns 400 and a psql error message when article_id is not present in the database", () => {
+          request(app)
+            .post("/api/articles/999999/comments")
+            .send({
+              username: "butter_bridge",
+              body: "posting a test comment"
+            })
+            .expect(400)
+            .then(response => {
+              expect(response.body).to.eql({
+                msg:
+                  'Key (article_id)=(999999) is not present in table "articles". [Violates foreign key constraint]'
+              });
+            });
+        });
+        it("POST returns 400 and a psql error message when article_id parametric endpoint input is not an integer", () => {
+          request(app)
+            .post("/api/articles/not-a-valid-article_id/comments")
+            .send({
+              username: "butter_bridge",
+              body: "posting a test comment"
+            })
+            .expect(400)
+            .then(response => {
+              expect(response.body).to.eql({
+                msg:
+                  'invalid input syntax for integer: "not-a-valid-article_id"'
+              });
+            });
+        });
+        it("PATCH/DELETE method on a the /api/articles/:article_id/comments endpoint returns status 405 and a message saying method not allowed", () => {
+          const methods = ["delete", "patch"];
+          const invalidMethods = methods.map(item => {
+            return request(app)
+              [item]("/api/articles/1/comments")
+              .expect(405)
+              .then(response => {
+                expect(response.body).to.eql({
+                  msg: "Method not allowed"
+                });
+              });
+          });
+          return Promise.all(invalidMethods);
+        });
       });
     });
   });
