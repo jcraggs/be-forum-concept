@@ -206,6 +206,39 @@ describe("/api", () => {
             expect(response.body.body).to.eql("posting a test comment");
           });
       });
+      it("GET returns status 200 and an array of comments for the given article_id", () => {
+        return request(app)
+          .get("/api/articles/1/comments")
+          .expect(200)
+          .then(response => {
+            expect(response.body).to.be.an("array");
+            response.body.forEach(item => {
+              expect(item).to.have.keys(
+                "comment_id",
+                "votes",
+                "created_at",
+                "author",
+                "body"
+              );
+            });
+          });
+      });
+      it("GET returns status 200 and an object with a message 'No comments exist' when given a valid article_id which has no comments", () => {
+        return request(app)
+          .get("/api/articles/2/comments")
+          .expect(200)
+          .then(response => {
+            expect(response.body).to.eql([]);
+          });
+      });
+      // it("GET query 'sort_by' returns status 200 and an array of the comments sorted by any valid input (defaulting to created_at)", () => {
+      //   return request(app)
+      //     .get("/api/articles/1/comments?sort_by=votes")
+      //     .expect(200);
+      //   // .then(response => {
+      //   //   console.log(response);
+      //   // });
+      // });
       describe("Errors", () => {
         it("POST returns 400 when either post send keys are invalid", () => {
           return request(app)
@@ -293,6 +326,26 @@ describe("/api", () => {
               });
           });
           return Promise.all(invalidMethods);
+        });
+        it("GET returns 404 and message explaining that the article_id (and therefore comments) requested does not exist", () => {
+          return request(app)
+            .get("/api/articles/999/comments")
+            .expect(404)
+            .then(response => {
+              expect(response.body).to.eql({
+                msg: 'Error: article "999" does not exist'
+              });
+            });
+        });
+        it("GET returns 400 and a psql error message explaining the invalid input syntax for integer", () => {
+          return request(app)
+            .get("/api/articles/not-a-valid-article/comments")
+            .expect(400)
+            .then(response => {
+              expect(response.body).to.eql({
+                msg: 'invalid input syntax for integer: "not-a-valid-article"'
+              });
+            });
         });
       });
     });

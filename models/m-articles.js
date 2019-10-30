@@ -76,4 +76,43 @@ const createComment = (inputComment, inputArticle_id) => {
     });
 };
 
-module.exports = { fetchArticleById, updateArticleVotes, createComment };
+const fetchComments = inputArticle_id => {
+  const commentPromise = connection
+    .select("comment_id", "votes", "created_at", "author", "body")
+    .from("comments")
+    .where({ article_id: inputArticle_id })
+    .returning("*");
+  const checkArticlePromise = checkArticleIdExists(inputArticle_id);
+  return Promise.all([commentPromise, checkArticlePromise]).then(
+    ([comments, articleFlag]) => {
+      if (comments.length) return comments;
+      if (comments.length === 0 && articleFlag === true) {
+        return [];
+      } else
+        return Promise.reject({
+          status: 404,
+          msg: `Error: article "${inputArticle_id}" does not exist`
+        });
+    }
+  );
+};
+
+const checkArticleIdExists = input => {
+  return connection
+    .select("*")
+    .from("articles")
+    .where({ article_id: input })
+    .returning("*")
+    .then(response => {
+      if (response.length === 0) {
+        return false;
+      } else return true;
+    });
+};
+
+module.exports = {
+  fetchArticleById,
+  updateArticleVotes,
+  createComment,
+  fetchComments
+};

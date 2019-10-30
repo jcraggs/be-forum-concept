@@ -1,7 +1,8 @@
 const {
   fetchArticleById,
   updateArticleVotes,
-  createComment
+  createComment,
+  fetchComments
 } = require("../models/m-articles");
 
 exports.getArticleById = (req, res, next) => {
@@ -29,6 +30,15 @@ exports.postComment = (req, res, next) => {
   createComment(newComment, article_id)
     .then(postedComment => {
       res.status(201).json(postedComment);
+    })
+    .catch(next);
+};
+
+exports.getCommentsByArticleID = (req, res, next) => {
+  const { article_id } = req.params;
+  fetchComments(article_id)
+    .then(comments => {
+      res.status(200).json(comments);
     })
     .catch(next);
 };

@@ -6,19 +6,19 @@ exports.handleCustomErrors = (err, req, res, next) => {
 };
 
 exports.routeDoesNotExist = (req, res, next) => {
-  console.log("in route does not exist");
+  //console.log("in route does not exist");
   res.status(404).send({ msg: "Error: Page not found" });
 };
 
 exports.methodNotAllowed = (req, res, next) => {
-  console.log("in method not allowed");
+  //console.log("in method not allowed");
   res.status(405).send({ msg: "Method not allowed" });
 };
 
 exports.handlePSQLErrors = (err, req, res, next) => {
   //console.log(err);
   if (err.code) {
-    console.log("in PSQL errors");
+    //console.log("in PSQL errors");
     const createMessage = err => {
       return err.message.split(" - ")[1];
     };
