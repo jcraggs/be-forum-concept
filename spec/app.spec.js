@@ -74,6 +74,121 @@ describe("/api", () => {
       });
     });
   });
+  describe.only("/articles", () => {
+    it("GET returns status 200 and an array of article objects", () => {
+      return request(app)
+        .get("/api/articles")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles).to.be.an("array");
+          expect(articles[0]).to.have.keys(
+            "article_id",
+            "author",
+            "title",
+            "topic",
+            "created_at",
+            "votes",
+            "comment_count"
+          );
+        });
+    });
+    it("GET query 'sort_by=article_id' returns status 200 and an array of the articles sorted by article_id", () => {
+      return request(app)
+        .get("/api/articles?sort_by=article_id")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles).to.be.descendingBy("article_id");
+        });
+    });
+    it("GET query 'order=asc' returns status 200 and an array of the articles ordered in ascending, defaulting to created at", () => {
+      return request(app)
+        .get("/api/articles?order=asc")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles).to.be.ascendingBy("created_at");
+        });
+    });
+    it("GET query 'order=asc' returns status 200 and an array of the articles ordered in ascending, defaulting to created at", () => {
+      return request(app)
+        .get("/api/articles?sort_by=article_id&order=asc")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles).to.be.ascendingBy("article_id");
+        });
+    });
+    it("GET query 'author' returns status 200 and an array of the articles by that author", () => {
+      return request(app)
+        .get("/api/articles?author=butter_bridge")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          articles.forEach(item => {
+            expect(item.author).to.eql("butter_bridge");
+          });
+        });
+    });
+    it("GET query 'topic' returns status 200 and an array of the articles which match the topic", () => {
+      return request(app)
+        .get("/api/articles?topic=mitch")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          articles.forEach(item => {
+            expect(item.topic).to.eql("mitch");
+          });
+        });
+    });
+    it("GET query 'topic & author' returns status 200 and an array of the articles which match the topic", () => {
+      return request(app)
+        .get(
+          "/api/articles?topic=mitch&author=butter_bridge&sort_by=article_id&order=asc"
+        )
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          articles.forEach(item => {
+            expect(item.topic).to.eql("mitch");
+            expect(item.author).to.eql("butter_bridge");
+          });
+          expect(articles).to.be.ascendingBy("article_id");
+        });
+    });
+    describe("Errors", () => {
+      it("PATCH/DELETE/POST methods on a the /api/articles endpoint returns status 405 and a message saying method not allowed", () => {
+        const methods = ["delete", "patch", "post"];
+        const invalidMethods = methods.map(item => {
+          return request(app)
+            [item]("/api/articles")
+            .expect(405)
+            .then(response => {
+              expect(response.body).to.eql({
+                msg: "Method not allowed"
+              });
+            });
+        });
+        return Promise.all(invalidMethods);
+      });
+      it("GET query with bad sort_by input returns 404 and a message explaining the input does not match column data ", () => {
+        return request(app)
+          .get("/api/articles?sort_by=not-a-valid-column")
+          .expect(404)
+          .then(response => {
+            expect(response.body).to.eql({
+              msg:
+                'Error: sort_by query syntax "not-a-valid-column" does not match any column data avaliable'
+            });
+          });
+      });
+      it("GET query with an invalid order input returns 400 and a message explaining the input is not a valid column ", () => {
+        return request(app)
+          .get("/api/articles?order=not-desc-or-asc")
+          .expect(400)
+          .then(response => {
+            expect(response.body).to.eql({
+              msg:
+                'Error: order query syntax "not-desc-or-asc" is not valid. Order query input must be either "asc", "desc" or left undefined'
+            });
+          });
+      });
+    });
+  });
   describe("/articles/:article_id", () => {
     it("GET returns status 200 and the specified article data", () => {
       return request(app)
@@ -187,7 +302,7 @@ describe("/api", () => {
           });
       });
     });
-    describe.only("/articles/:article_id/comments", () => {
+    describe("/articles/:article_id/comments", () => {
       it("POST returns status 201 and the item which has been posted", () => {
         return request(app)
           .post("/api/articles/1/comments")
@@ -365,12 +480,26 @@ describe("/api", () => {
               });
             });
         });
-        it("GET with bad query returns", () => {
+        it("GET with bad order query returns status 400 and message explaining the input is constrained to asc, desc or undefined", () => {
           return request(app)
             .get("/api/articles/1/comments?order=not-desc-or-asc")
             .expect(400)
             .then(response => {
-              console.log(response);
+              expect(response.body).to.eql({
+                msg:
+                  'Error: order query syntax "not-desc-or-asc" is not valid. Order query input must be either "asc", "desc" or left undefined'
+              });
+            });
+        });
+        it("GET with bad sort_by query returns 404 and a message explaining the input is not a valid column", () => {
+          return request(app)
+            .get("/api/articles/1/comments?sort_by=not-a-valid-column")
+            .expect(404)
+            .then(response => {
+              expect(response.body).to.eql({
+                msg:
+                  'Error: sort_by query syntax "not-a-valid-column" does not match any column data avaliable'
+              });
             });
         });
       });

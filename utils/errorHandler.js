@@ -16,7 +16,6 @@ exports.methodNotAllowed = (req, res, next) => {
 };
 
 exports.handlePSQLErrors = (err, req, res, next) => {
-  console.log(err);
   if (err.code) {
     console.log("in PSQL errors");
     const createMessage = err => {
@@ -42,5 +41,6 @@ exports.handlePSQLErrors = (err, req, res, next) => {
 
 exports.handleServerErrors = (err, req, res, next) => {
   console.log("in server errors");
-  console.log(err);
+  //console.log(err);
+  res.status(500).send({ msg: "ERROR" });
 };

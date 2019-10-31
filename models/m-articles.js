@@ -1,5 +1,63 @@
 const connection = require("../db/connection.js");
 
+const fetchAllArticles = (sort_by, order, author, topic) => {
+  console.log(sort_by);
+  console.log(order);
+  console.log(author);
+  console.log(topic);
+  console.log("in fetch all articles model");
+  const validSort_by = [
+    "article_id",
+    "author",
+    "title",
+    "topic",
+    "created_at",
+    "votes",
+    "comment_count",
+    undefined
+  ];
+
+  const validOrder = ["asc", "desc", undefined];
+
+  if (!validSort_by.includes(sort_by)) {
+    return Promise.reject({
+      status: 404,
+      msg: `Error: sort_by query syntax "${sort_by}" does not match any column data avaliable`
+    });
+  }
+
+  if (!validOrder.includes(order)) {
+    return Promise.reject({
+      status: 400,
+      msg: `Error: order query syntax "${order}" is not valid. Order query input must be either "asc", "desc" or left undefined`
+    });
+  }
+
+  return connection
+    .select(
+      "articles.article_id",
+      "articles.author",
+      "articles.title",
+      "articles.article_id",
+      "articles.topic",
+      "articles.created_at",
+      "articles.votes"
+    )
+    .from("articles")
+    .leftJoin("comments", "articles.article_id", "comments.article_id")
+    .count("comment_id as comment_count")
+    .groupBy("articles.article_id")
+    .orderBy(sort_by || "created_at", order || "desc")
+    .modify(query => {
+      if (author) query.where("articles.author", author);
+      if (topic) query.where("articles.topic", topic);
+    });
+  // .returning("*")
+  // .then(response => {
+  //   return response;
+  // });
+};
+
 const fetchArticleById = inputArticle_id => {
   return connection
     .select("articles.*")
@@ -77,31 +135,48 @@ const createComment = (inputComment, inputArticle_id) => {
 };
 
 const fetchComments = (inputArticle_id, sort_by, order) => {
-  console.log(order);
-  console.log(sort_by);
+  const acceptedOrder = ["asc", "desc", undefined];
+  const acceptedSort_by = [
+    undefined,
+    "comment_id",
+    "votes",
+    "created_at",
+    "author"
+  ];
 
-  if (order === "asc" || order === "desc" || order === undefined) {
-    const commentPromise = connection
-      .select("comment_id", "votes", "created_at", "author", "body")
-      .from("comments")
-      .where({ article_id: inputArticle_id })
-      .orderBy(sort_by || "created_at", order || "desc")
-      .returning("*");
-    const checkArticlePromise = checkArticleIdExists(inputArticle_id);
-    return Promise.all([commentPromise, checkArticlePromise]).then(
-      ([comments, articleFlag]) => {
-        if (comments.length) return comments;
-        if (comments.length === 0 && articleFlag === true) {
-          return [];
-        } else
-          return Promise.reject({
-            status: 404,
-            msg: `Error: article "${inputArticle_id}" does not exist`
-          });
-      }
-    );
+  if (!acceptedOrder.includes(order)) {
+    return Promise.reject({
+      status: 400,
+      msg: `Error: order query syntax "${order}" is not valid. Order query input must be either "asc", "desc" or left undefined`
+    });
   }
-  console.log("lets error");
+
+  if (!acceptedSort_by.includes(sort_by)) {
+    return Promise.reject({
+      status: 404,
+      msg: `Error: sort_by query syntax "${sort_by}" does not match any column data avaliable`
+    });
+  }
+
+  const commentPromise = connection
+    .select("comment_id", "votes", "created_at", "author", "body")
+    .from("comments")
+    .where({ article_id: inputArticle_id })
+    .orderBy(sort_by || "created_at", order || "desc")
+    .returning("*");
+  const checkArticlePromise = checkArticleIdExists(inputArticle_id);
+  return Promise.all([commentPromise, checkArticlePromise]).then(
+    ([comments, articleFlag]) => {
+      if (comments.length) return comments;
+      if (comments.length === 0 && articleFlag === true) {
+        return [];
+      } else
+        return Promise.reject({
+          status: 404,
+          msg: `Error: article "${inputArticle_id}" does not exist`
+        });
+    }
+  );
 };
 
 const checkArticleIdExists = input => {
@@ -121,5 +196,6 @@ module.exports = {
   fetchArticleById,
   updateArticleVotes,
   createComment,
-  fetchComments
+  fetchComments,
+  fetchAllArticles
 };

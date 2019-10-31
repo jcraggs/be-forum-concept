@@ -3,9 +3,15 @@ const {
   getArticleById,
   patchArticleVotes,
   postComment,
-  getCommentsByArticleID
+  getCommentsByArticleID,
+  getAllArticles
 } = require("../controllers/c-articles");
 const { methodNotAllowed } = require("../utils/errorHandler");
+
+articlesRouter
+  .route("/")
+  .get(getAllArticles)
+  .all(methodNotAllowed);
 
 articlesRouter
   .route("/:article_id")

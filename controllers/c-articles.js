@@ -2,8 +2,19 @@ const {
   fetchArticleById,
   updateArticleVotes,
   createComment,
-  fetchComments
+  fetchComments,
+  fetchAllArticles
 } = require("../models/m-articles");
+
+exports.getAllArticles = (req, res, next) => {
+  console.log("in get all articles controller");
+  const { sort_by, order, author, topic } = req.query;
+  fetchAllArticles(sort_by, order, author, topic)
+    .then(articles => {
+      res.status(200).json({ articles });
+    })
+    .catch(next);
+};
 
 exports.getArticleById = (req, res, next) => {
   const { article_id } = req.params;
@@ -36,8 +47,7 @@ exports.postComment = (req, res, next) => {
 
 exports.getCommentsByArticleID = (req, res, next) => {
   const { article_id } = req.params;
-  const { sort_by } = req.query;
-  const { order } = req.query;
+  const { sort_by, order } = req.query;
   fetchComments(article_id, sort_by, order)
     .then(comments => {
       res.status(200).json(comments);
