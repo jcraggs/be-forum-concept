@@ -150,6 +150,23 @@ describe("/api", () => {
           expect(articles).to.be.ascendingBy("article_id");
         });
     });
+    it("GET query with a valid author with no associated articles returns an empty array ", () => {
+      return request(app)
+        .get("/api/articles?author=lurker")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles).to.eql([]);
+        });
+    });
+    it("GET query with a valid topic with no associated articles returns an empty array", () => {
+      return request(app)
+        .get("/api/articles?topic=paper")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles).to.eql([]);
+        });
+    });
+
     describe("Errors", () => {
       it("PATCH/DELETE/POST methods on a the /api/articles endpoint returns status 405 and a message saying method not allowed", () => {
         const methods = ["delete", "patch", "post"];
@@ -185,6 +202,24 @@ describe("/api", () => {
               msg:
                 'Error: order query syntax "not-desc-or-asc" is not valid. Order query input must be either "asc", "desc" or left undefined'
             });
+          });
+      });
+      it("GET query with a query for an author that doesn't exist returns 404 and a message stating the author not found", () => {
+        return request(app)
+          .get("/api/articles/?author=not-an-author")
+          .expect(404)
+          .then(response => {
+            expect(response.body).to.eql({
+              msg: 'Error: article "not-an-author" does not exist'
+            });
+          });
+      });
+      it("GET query with a query for a topic that doesn't exist returns 404 and a message stating that the topic was not found", () => {
+        return request(app)
+          .get("/api/articles/?topic=not-a-topic")
+          .expect(404)
+          .then(response => {
+            console.log(response);
           });
       });
     });

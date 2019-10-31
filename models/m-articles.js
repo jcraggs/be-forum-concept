@@ -1,10 +1,11 @@
 const connection = require("../db/connection.js");
 
 const fetchAllArticles = (sort_by, order, author, topic) => {
-  console.log(sort_by);
-  console.log(order);
-  console.log(author);
-  console.log(topic);
+  // console.log(sort_by);
+  // console.log(order);
+  // console.log(author);
+  // console.log(topic);
+
   console.log("in fetch all articles model");
   const validSort_by = [
     "article_id",
@@ -33,7 +34,7 @@ const fetchAllArticles = (sort_by, order, author, topic) => {
     });
   }
 
-  return connection
+  const articlesPromise = connection
     .select(
       "articles.article_id",
       "articles.author",
@@ -51,11 +52,37 @@ const fetchAllArticles = (sort_by, order, author, topic) => {
     .modify(query => {
       if (author) query.where("articles.author", author);
       if (topic) query.where("articles.topic", topic);
+    })
+    .returning("*")
+    .then(response => {
+      return response;
     });
-  // .returning("*")
-  // .then(response => {
-  //   return response;
-  // });
+
+  let authorFlag = true;
+
+  if (author) {
+    authorFlag = checkAuthorExists(author);
+  }
+
+  let topicFlag = true;
+
+  if (topic) {
+    topicFlag = checkTopicExists(topic);
+  }
+
+  return Promise.all([articlesPromise, authorFlag]).then(
+    ([articles, authorFlag]) => {
+      if (articles.length) return articles;
+
+      if (articles.length === 0 && authorFlag) {
+        return [];
+      } else
+        return Promise.reject({
+          status: 404,
+          msg: `Error: article "${author}" does not exist`
+        });
+    }
+  );
 };
 
 const fetchArticleById = inputArticle_id => {
@@ -164,7 +191,9 @@ const fetchComments = (inputArticle_id, sort_by, order) => {
     .where({ article_id: inputArticle_id })
     .orderBy(sort_by || "created_at", order || "desc")
     .returning("*");
+
   const checkArticlePromise = checkArticleIdExists(inputArticle_id);
+
   return Promise.all([commentPromise, checkArticlePromise]).then(
     ([comments, articleFlag]) => {
       if (comments.length) return comments;
@@ -184,6 +213,32 @@ const checkArticleIdExists = input => {
     .select("*")
     .from("articles")
     .where({ article_id: input })
+    .returning("*")
+    .then(response => {
+      if (response.length === 0) {
+        return false;
+      } else return true;
+    });
+};
+
+const checkAuthorExists = input => {
+  return connection
+    .select("*")
+    .from("users")
+    .where({ username: input })
+    .returning("*")
+    .then(response => {
+      if (response.length === 0) {
+        return false;
+      } else return true;
+    });
+};
+
+const checkTopicExists = input => {
+  return connection
+    .select("*")
+    .from("topics")
+    .where({ slug: input })
     .returning("*")
     .then(response => {
       if (response.length === 0) {
