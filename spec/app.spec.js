@@ -74,7 +74,7 @@ describe("/api", () => {
       });
     });
   });
-  describe.only("/articles", () => {
+  describe("/articles", () => {
     it("GET returns status 200 and an array of article objects", () => {
       return request(app)
         .get("/api/articles")
@@ -136,7 +136,7 @@ describe("/api", () => {
           });
         });
     });
-    it("GET query 'topic & author' returns status 200 and an array of the articles which match the topic", () => {
+    it("GET query 'topic & author, sort_by and order' returns status 200 and an array of the articles which match the topic", () => {
       return request(app)
         .get(
           "/api/articles?topic=mitch&author=butter_bridge&sort_by=article_id&order=asc"
@@ -166,7 +166,6 @@ describe("/api", () => {
           expect(articles).to.eql([]);
         });
     });
-
     describe("Errors", () => {
       it("PATCH/DELETE/POST methods on a the /api/articles endpoint returns status 405 and a message saying method not allowed", () => {
         const methods = ["delete", "patch", "post"];
@@ -210,7 +209,7 @@ describe("/api", () => {
           .expect(404)
           .then(response => {
             expect(response.body).to.eql({
-              msg: 'Error: article "not-an-author" does not exist'
+              msg: 'Error: author "not-an-author" does not exist'
             });
           });
       });
@@ -219,7 +218,9 @@ describe("/api", () => {
           .get("/api/articles/?topic=not-a-topic")
           .expect(404)
           .then(response => {
-            console.log(response);
+            expect(response.body).to.eql({
+              msg: 'Error: topic "not-a-topic" does not exist'
+            });
           });
       });
     });
@@ -537,6 +538,111 @@ describe("/api", () => {
               });
             });
         });
+      });
+    });
+  });
+  describe("/comments", () => {
+    describe("/comments/:comment_id", () => {
+      it("PATCH returns status 200 and the item with the updated vote count ", () => {
+        return request(app)
+          .patch("/api/comments/1")
+          .send({ inc_votes: 1234 })
+          .expect(200)
+          .then(response => {
+            expect(response.body).to.have.keys(
+              "comment_id",
+              "author",
+              "article_id",
+              "votes",
+              "created_at",
+              "body"
+            );
+            expect(response.body.votes).to.eql(1250);
+          });
+      });
+      it("DELETE returns status 204 and an empty object ", () => {
+        return request(app)
+          .delete("/api/comments/1")
+          .expect(204)
+          .then(response => {
+            expect(response.body).to.eql({});
+          });
+      });
+    });
+    describe("Errors", () => {
+      it("GET/POST methods on a the /api/comments/:comment_id endpoint returns status 405 and a message saying method not allowed", () => {
+        const methods = ["get", "post"];
+        const invalidMethods = methods.map(item => {
+          return request(app)
+            [item]("/api/comments/1")
+            .expect(405)
+            .then(response => {
+              expect(response.body).to.eql({
+                msg: "Method not allowed"
+              });
+            });
+        });
+        return Promise.all(invalidMethods);
+      });
+      it("PATCH method with a comment_id which does not exist returns 404 and a message saying the comment doesnt exist", () => {
+        return request(app)
+          .patch("/api/comments/999999")
+          .send({ inc_votes: 1234 })
+          .expect(404)
+          .then(response => {
+            expect(response.body).to.eql({
+              msg: "Error: patch failed, comment does not exist"
+            });
+          });
+      });
+      it("PATCH method with an invalid comment_id returns 400 and a message saying the input syntax is bad", () => {
+        return request(app)
+          .patch("/api/comments/invalid-id")
+          .send({ inc_votes: 1234 })
+          .expect(400)
+          .then(response => {
+            expect(response.body).to.eql({
+              msg: 'invalid input syntax for integer: "invalid-id"'
+            });
+          });
+      });
+      it("PATCH method on an comment with invalid send object key returns status 400 and a message saying that the update key is invalid", () => {
+        return request(app)
+          .patch("/api/comments/1")
+          .send({ badKey: 1234 })
+          .expect(400);
+      });
+      it("PATCH method on an article with invalid send object value returns status 400 and a message saying that input syntax for patch key should be a number", () => {
+        return request(app)
+          .patch("/api/comments/1")
+          .send({ inc_votes: "not a number" })
+          .expect(400)
+          .then(response => {
+            expect(response.body).to.eql({
+              msg:
+                "Error: update value input for votes patch method should be an integer"
+            });
+          });
+      });
+      it("DELETE method with a comment_id which does not exist returns 404 and a message saying the comment doesnt exist", () => {
+        return request(app)
+          .delete("/api/comments/99999")
+          .expect(404)
+          .then(response => {
+            expect(response.body).to.eql({
+              msg: "Error: delete failed, comment does not exist"
+            });
+          });
+      });
+      it("DELETE method with an invalid comment_id returns 400 and a message saying the input syntax is bad", () => {
+        return request(app)
+          .delete("/api/comments/invalid-id")
+          .expect(400)
+          .then(response => {
+            expect(response.body).to.eql({
+              msg: 'invalid input syntax for integer: "invalid-id"'
+            });
+          });
       });
     });
   });

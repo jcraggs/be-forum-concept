@@ -7,7 +7,6 @@ const {
 } = require("../models/m-articles");
 
 exports.getAllArticles = (req, res, next) => {
-  console.log("in get all articles controller");
   const { sort_by, order, author, topic } = req.query;
   fetchAllArticles(sort_by, order, author, topic)
     .then(articles => {

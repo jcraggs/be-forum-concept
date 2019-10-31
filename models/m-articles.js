@@ -1,12 +1,6 @@
 const connection = require("../db/connection.js");
 
 const fetchAllArticles = (sort_by, order, author, topic) => {
-  // console.log(sort_by);
-  // console.log(order);
-  // console.log(author);
-  // console.log(topic);
-
-  console.log("in fetch all articles model");
   const validSort_by = [
     "article_id",
     "author",
@@ -70,17 +64,31 @@ const fetchAllArticles = (sort_by, order, author, topic) => {
     topicFlag = checkTopicExists(topic);
   }
 
-  return Promise.all([articlesPromise, authorFlag]).then(
-    ([articles, authorFlag]) => {
+  return Promise.all([articlesPromise, authorFlag, topicFlag]).then(
+    ([articles, authorFlag, topicFlag]) => {
       if (articles.length) return articles;
 
-      if (articles.length === 0 && authorFlag) {
+      if (articles.length === 0 && authorFlag && author) {
         return [];
-      } else
+      }
+
+      if (articles.length === 0 && topicFlag && topic) {
+        return [];
+      }
+
+      if (topic) {
         return Promise.reject({
           status: 404,
-          msg: `Error: article "${author}" does not exist`
+          msg: `Error: topic "${topic}" does not exist`
         });
+      }
+
+      if (author) {
+        return Promise.reject({
+          status: 404,
+          msg: `Error: author "${author}" does not exist`
+        });
+      }
     }
   );
 };
