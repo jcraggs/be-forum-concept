@@ -1,6 +1,17 @@
 const connection = require("../db/connection.js");
 
 const updateCommentVotes = (inputComment_id, update) => {
+  if (Object.keys(update).length === 0) {
+    return connection
+      .first()
+      .from("comments")
+      .where({ comment_id: inputComment_id })
+      .returning("*")
+      .then(response => {
+        return response;
+      });
+  }
+
   if (isNaN(update.inc_votes) && update.inc_votes !== undefined) {
     return Promise.reject({
       status: 400,

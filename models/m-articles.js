@@ -112,6 +112,17 @@ const fetchArticleById = inputArticle_id => {
 };
 
 const updateArticleVotes = (update, inputArticle_id) => {
+  if (Object.keys(update).length === 0) {
+    return connection
+      .first()
+      .from("articles")
+      .where({ article_id: inputArticle_id })
+      .returning("*")
+      .then(response => {
+        return response;
+      });
+  }
+
   if (isNaN(update.inc_votes) && update.inc_votes !== undefined) {
     return Promise.reject({
       status: 400,

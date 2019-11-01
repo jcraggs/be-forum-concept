@@ -296,6 +296,25 @@ describe("/api", () => {
           expect(response.body.article.votes).to.equal(1334);
         });
     });
+    it("PATCH returns status 200 and the unchanged article when no information is passed on the request body", () => {
+      return request(app)
+        .patch("/api/articles/1")
+        .send()
+        .expect(200)
+        .then(response => {
+          expect(response.body).to.be.an("object");
+          expect(response.body.article).to.have.keys(
+            "article_id",
+            "title",
+            "body",
+            "votes",
+            "topic",
+            "author",
+            "created_at"
+          );
+          expect(response.body.article.votes).to.equal(100);
+        });
+    });
     describe("Errors", () => {
       it("GET returns status 404 and message explaining that the article_id does not exist", () => {
         return request(app)
@@ -591,6 +610,24 @@ describe("/api", () => {
               "body"
             );
             expect(response.body.comment.votes).to.eql(1250);
+          });
+      });
+      it("PATCH returns status 200 and the unchanged comment when no information is passed on the request body", () => {
+        return request(app)
+          .patch("/api/comments/1")
+          .send()
+          .expect(200)
+          .then(response => {
+            expect(response.body).to.be.an("object");
+            expect(response.body.comment).to.have.keys(
+              "comment_id",
+              "author",
+              "article_id",
+              "votes",
+              "created_at",
+              "body"
+            );
+            expect(response.body.comment.votes).to.equal(16);
           });
       });
       it("DELETE returns status 204 and an empty object ", () => {
