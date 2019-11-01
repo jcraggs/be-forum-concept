@@ -14,6 +14,14 @@ describe("/api", () => {
   beforeEach(() => {
     return connection.seed.run();
   });
+  it("GET returns status 200 and a JSON describing all the available endpoints of the API", () => {
+    return request(app)
+      .get("/api")
+      .expect(200)
+      .then(response => {
+        expect(response.body).to.contain.keys("GET /api");
+      });
+  });
   describe("Errors", () => {
     it('"DELETE/POST/PATCH/GET methods on the /api endpoint returns status 405 and a message saying method not allowed"', () => {
       const methods = ["delete", "post", "patch"];

@@ -8,7 +8,6 @@
     "seed": "knex seed:run",
     "seed-test": "npm run setup-dbs && NODE_ENV=test knex seed:run",
     "seed-dev": "npm run setup-dbs && knex seed:run",
-    "test-query": "psql -f ./utils/queryBuilder.sql > ./utils/output.txt",
     "test-utils": "mocha spec/utils.spec.js",
     "test-app": "mocha spec/app.spec.js",
     "migrate-make": "knex migrate:make",

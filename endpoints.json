@@ -23,5 +23,103 @@
         }
       ]
     }
+  },
+  "GET /api/articles/:article_id": {
+    "description": "serves an article object",
+    "queries": [],
+    "exampleResponse": {
+      "article": {
+        "author": "Anonymous_koala",
+        "title": "Why we should plant more eucalyptus trees...",
+        "article_id": 1,
+        "body": "text from the article",
+        "topic": "Fantastic ideas",
+        "created_at": "2018-11-15T12:21:54.171Z",
+        "votes": 0,
+        "comment_count": "13"
+      }
+    }
+  },
+  "PATCH /api/articles/:article_id": {
+    "description": "serves an article object with the votes key changed by the value specified in the request body",
+    "exampleRequestBody": { "inc_votes": 999 },
+    "exampleResponse": {
+      "article": {
+        "author": "Anonymous_koala",
+        "title": "Why we should plant more eucalyptus trees...",
+        "article_id": 1,
+        "body": "text from the article",
+        "topic": "Fantastic ideas",
+        "created_at": "2018-11-15T12:21:54.171Z",
+        "votes": 999,
+        "comment_count": "13"
+      }
+    }
+  },
+  "GET /api/articles/:article_id/comments": {
+    "description": "serves an array of all comments for the given article_id",
+    "queries": ["sort_by", "order"],
+    "exampleResponse": {
+      "comments": [
+        {
+          "comment_id": 100,
+          "votes": 0,
+          "created_at": "2016-11-23T12:36:03.389Z",
+          "author": "Lime_lover55",
+          "body": "What a terrible thing to say"
+        },
+        {
+          "comment_id": 99,
+          "votes": 14,
+          "created_at": "2016-11-22T12:36:03.389Z",
+          "author": "lemonBoy",
+          "body": "Limes are just the worst"
+        }
+      ]
+    }
+  },
+  "POST /api/articles/:article_id/comments": {
+    "description": "serves a single comment object with contents dependent on the request body sent",
+    "exampleRequestBody": {
+      "username": "jenkins1",
+      "body": "text of the comment"
+    },
+    "exampleResponse": {
+      "comment": {
+        "comment_id": 101,
+        "votes": 0,
+        "created_at": "2019-11-22T12:36:03.389Z",
+        "author": "jenkins1",
+        "body": "text of the comment"
+      }
+    }
+  },
+  "PATCH /api/comments/:comment_id": {
+    "description": "serves a comment object with the votes key changed by the value specified in the request body",
+    "exampleRequestBody": { "inc_votes": 999 },
+    "exampleResponse": {
+      "comment": {
+        "comment_id": 101,
+        "votes": 999,
+        "created_at": "2019-11-22T12:36:03.389Z",
+        "author": "jenkins1",
+        "body": "text of the comment"
+      }
+    }
+  },
+  "DELETE /api/comments/:comment_id": {
+    "description": "deletes the comment by specified comment_id and returns an object with no content",
+    "exampleResponse": {}
+  },
+  "GET /api/users/username": {
+    "description": "serves an object with the users' information",
+    "queries": [],
+    "exampleResponse": {
+      "user": {
+        "username": "lurker",
+        "avatar_url": "www.not-a-website.com/not-an-img.jpg",
+        "name": "barry"
+      }
+    }
   }
 }
