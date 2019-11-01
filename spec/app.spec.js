@@ -14,6 +14,22 @@ describe("/api", () => {
   beforeEach(() => {
     return connection.seed.run();
   });
+  describe("Errors", () => {
+    it('"DELETE/POST/PATCH/GET methods on the /api endpoint returns status 405 and a message saying method not allowed"', () => {
+      const methods = ["delete", "post", "patch"];
+      const invalidMethods = methods.map(item => {
+        return request(app)
+          [item]("/api")
+          .expect(405)
+          .then(response => {
+            expect(response.body).to.eql({
+              msg: "Method not allowed"
+            });
+          });
+      });
+      return Promise.all(invalidMethods);
+    });
+  });
   describe("/topics", () => {
     it("GET returns status 200 & all topics data", () => {
       return request(app)
@@ -23,6 +39,22 @@ describe("/api", () => {
           expect(topics).to.be.an("array");
           expect(topics[0]).to.have.keys("slug", "description");
         });
+    });
+    describe("Errors", () => {
+      it("DELETE/POST/PATCH method on the /api/topics endpoint returns status 405 and a message saying method not allowed", () => {
+        const methods = ["delete", "post", "patch"];
+        const invalidMethods = methods.map(item => {
+          return request(app)
+            [item]("/api/topics")
+            .expect(405)
+            .then(response => {
+              expect(response.body).to.eql({
+                msg: "Method not allowed"
+              });
+            });
+        });
+        return Promise.all(invalidMethods);
+      });
     });
   });
   describe("/not-a-route", () => {
@@ -184,7 +216,7 @@ describe("/api", () => {
       it("GET query with bad sort_by input returns 404 and a message explaining the input does not match column data ", () => {
         return request(app)
           .get("/api/articles?sort_by=not-a-valid-column")
-          .expect(404)
+          .expect(400)
           .then(response => {
             expect(response.body).to.eql({
               msg:
@@ -251,7 +283,8 @@ describe("/api", () => {
         .expect(200)
         .then(response => {
           expect(response.body).to.be.an("object");
-          expect(response.body).to.have.keys(
+
+          expect(response.body.article).to.have.keys(
             "article_id",
             "title",
             "body",
@@ -260,7 +293,7 @@ describe("/api", () => {
             "author",
             "created_at"
           );
-          expect(response.body.votes).to.equal(1334);
+          expect(response.body.article.votes).to.equal(1334);
         });
     });
     describe("Errors", () => {
@@ -345,7 +378,7 @@ describe("/api", () => {
           .send({ username: "butter_bridge", body: "posting a test comment" })
           .expect(201)
           .then(response => {
-            expect(response.body).to.have.keys([
+            expect(response.body.comment).to.have.keys([
               "comment_id",
               "author",
               "article_id",
@@ -353,10 +386,10 @@ describe("/api", () => {
               "created_at",
               "body"
             ]);
-            expect(response.body.author).to.eql("butter_bridge");
-            expect(response.body.votes).to.eql(0);
-            expect(response.body.article_id).to.eql(1);
-            expect(response.body.body).to.eql("posting a test comment");
+            expect(response.body.comment.author).to.eql("butter_bridge");
+            expect(response.body.comment.votes).to.eql(0);
+            expect(response.body.comment.article_id).to.eql(1);
+            expect(response.body.comment.body).to.eql("posting a test comment");
           });
       });
       it("GET returns status 200 and an array of comments for the given article_id", () => {
@@ -364,8 +397,8 @@ describe("/api", () => {
           .get("/api/articles/1/comments")
           .expect(200)
           .then(response => {
-            expect(response.body).to.be.an("array");
-            response.body.forEach(item => {
+            expect(response.body).to.be.an("object");
+            response.body.comments.forEach(item => {
               expect(item).to.have.keys(
                 "comment_id",
                 "votes",
@@ -381,7 +414,7 @@ describe("/api", () => {
           .get("/api/articles/2/comments")
           .expect(200)
           .then(response => {
-            expect(response.body).to.eql([]);
+            expect(response.body).to.eql({ comments: [] });
           });
       });
       it("GET query 'sort_by=votes' returns status 200 and an array of the comments sorted by votes", () => {
@@ -389,7 +422,7 @@ describe("/api", () => {
           .get("/api/articles/1/comments?sort_by=votes")
           .expect(200)
           .then(response => {
-            expect(response.body).to.be.descendingBy("votes");
+            expect(response.body.comments).to.be.descendingBy("votes");
           });
       });
       it("GET query with no 'sort_by or order' specified returns status 200 and an array of the comments sorted by 'created_at' in descending (the default)", () => {
@@ -397,7 +430,7 @@ describe("/api", () => {
           .get("/api/articles/1/comments")
           .expect(200)
           .then(response => {
-            expect(response.body).to.be.descendingBy("created_at");
+            expect(response.body.comments).to.be.descendingBy("created_at");
           });
       });
       it("GET query with 'order' specified as ascending returns status 200 and an array of the comments sorted by created_at (the default) in ascending order", () => {
@@ -405,7 +438,7 @@ describe("/api", () => {
           .get("/api/articles/1/comments/?order=asc")
           .expect(200)
           .then(response => {
-            expect(response.body).to.be.ascendingBy("created_at");
+            expect(response.body.comments).to.be.ascendingBy("created_at");
           });
       });
       describe("Errors", () => {
@@ -428,7 +461,7 @@ describe("/api", () => {
           return request(app)
             .post("/api/articles/1/comments")
             .send({ username: "not-a-valid-username", body: "test comment" })
-            .expect(400)
+            .expect(422)
             .then(response => {
               expect(response.body).to.eql({
                 msg:
@@ -459,7 +492,7 @@ describe("/api", () => {
               username: "butter_bridge",
               body: "posting a test comment"
             })
-            .expect(400)
+            .expect(422)
             .then(response => {
               expect(response.body).to.eql({
                 msg:
@@ -530,7 +563,7 @@ describe("/api", () => {
         it("GET with bad sort_by query returns 404 and a message explaining the input is not a valid column", () => {
           return request(app)
             .get("/api/articles/1/comments?sort_by=not-a-valid-column")
-            .expect(404)
+            .expect(400)
             .then(response => {
               expect(response.body).to.eql({
                 msg:
@@ -549,7 +582,7 @@ describe("/api", () => {
           .send({ inc_votes: 1234 })
           .expect(200)
           .then(response => {
-            expect(response.body).to.have.keys(
+            expect(response.body.comment).to.have.keys(
               "comment_id",
               "author",
               "article_id",
@@ -557,7 +590,7 @@ describe("/api", () => {
               "created_at",
               "body"
             );
-            expect(response.body.votes).to.eql(1250);
+            expect(response.body.comment.votes).to.eql(1250);
           });
       });
       it("DELETE returns status 204 and an empty object ", () => {

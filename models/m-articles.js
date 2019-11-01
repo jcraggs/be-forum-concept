@@ -16,7 +16,7 @@ const fetchAllArticles = (sort_by, order, author, topic) => {
 
   if (!validSort_by.includes(sort_by)) {
     return Promise.reject({
-      status: 404,
+      status: 400,
       msg: `Error: sort_by query syntax "${sort_by}" does not match any column data avaliable`
     });
   }
@@ -188,7 +188,7 @@ const fetchComments = (inputArticle_id, sort_by, order) => {
 
   if (!acceptedSort_by.includes(sort_by)) {
     return Promise.reject({
-      status: 404,
+      status: 400,
       msg: `Error: sort_by query syntax "${sort_by}" does not match any column data avaliable`
     });
   }

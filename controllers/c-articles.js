@@ -29,7 +29,7 @@ exports.patchArticleVotes = (req, res, next) => {
   const update = req.body;
   updateArticleVotes(update, article_id)
     .then(updatedArticle => {
-      res.status(200).json(updatedArticle);
+      res.status(200).send({ article: updatedArticle });
     })
     .catch(next);
 };
@@ -39,7 +39,7 @@ exports.postComment = (req, res, next) => {
   const newComment = req.body;
   createComment(newComment, article_id)
     .then(postedComment => {
-      res.status(201).json(postedComment);
+      res.status(201).json({ comment: postedComment });
     })
     .catch(next);
 };
@@ -48,8 +48,8 @@ exports.getCommentsByArticleID = (req, res, next) => {
   const { article_id } = req.params;
   const { sort_by, order } = req.query;
   fetchComments(article_id, sort_by, order)
-    .then(comments => {
-      res.status(200).json(comments);
+    .then(articleComments => {
+      res.status(200).json({ comments: articleComments });
     })
     .catch(next);
 };

@@ -22,7 +22,7 @@ exports.handlePSQLErrors = (err, req, res, next) => {
       msg: createMessage(err)
     },
     "23503": {
-      status: 400,
+      status: 422,
       msg: err.detail + " [Violates foreign key constraint]"
     }
   };
