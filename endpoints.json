@@ -10,7 +10,7 @@
     }
   },
   "GET /api/articles": {
-    "description": "serves an array of all topics",
+    "description": "serves an array of all the articles",
     "queries": ["author", "topic", "sort_by", "order"],
     "exampleResponse": {
       "articles": [
@@ -25,7 +25,7 @@
     }
   },
   "GET /api/articles/:article_id": {
-    "description": "serves an article object",
+    "description": "serves an article object depending on the specified article_id",
     "queries": [],
     "exampleResponse": {
       "article": {
@@ -41,7 +41,7 @@
     }
   },
   "PATCH /api/articles/:article_id": {
-    "description": "serves an article object with the votes key changed by the value specified in the request body",
+    "description": "serves a specified article object (based on article_id) with the votes key changed by the value specified in the request body",
     "exampleRequestBody": { "inc_votes": 999 },
     "exampleResponse": {
       "article": {
@@ -95,7 +95,7 @@
     }
   },
   "PATCH /api/comments/:comment_id": {
-    "description": "serves a comment object with the votes key changed by the value specified in the request body",
+    "description": "serves an updated comment object with the 'votes' key changed by the value specified in the request body",
     "exampleRequestBody": { "inc_votes": 999 },
     "exampleResponse": {
       "comment": {
