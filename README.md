@@ -130,8 +130,8 @@ The file descriptions and structure of this project is provided below:
 | /api/articles/:article_id          | GET     | Serves an article object depending on the specified article_id.                                                                   |
 | /api/articles/:article_id          | PATCH   | Serves an induvidual article object (based on article_id) with the 'votes' key changed by the value specified in the request body |
 | /api/articles/:article_id/comments | GET     | Serves an array of all the avaliable comments for the given article_id.                                                           |
-| /api/articles/:article_id/comments | POST    | Serves a single comment object with contents dependent on the post request body sent.                                             |
-| /api/comments/:comment_id          | PATCH   | Serves an updated comment object with the 'votes' key changed by the value specified in the request body.                         |
+| /api/articles/:article_id/comments | POST    | Posts a single comment object with contents dependent on the post request body sent and returns the comment object.                                             |
+| /api/comments/:comment_id          | PATCH   | Patches the specified comment object with the 'votes' key changed by the value specified in the request body and returns the updated object.                         |
 | /api/comments/:comment_id          | DELETE  | Deletes the specified comment (based on comment_id) and returns an object with no content                                         |
 
 ## Test Driven Development (TDD)
