@@ -121,18 +121,18 @@ The file descriptions and structure of this project is provided below:
 
 ## Current end-points
 
-| Endpoint                           | Request | Response                                                                                                                          |
-| ---------------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| /api                               | GET     | Serves up a JSON representation of all the available endpoints of the API.                                                        |
-| /api/topics                        | GET     | Serves an array of all the topics in the database.                                                                                |
-| /api/users/:username               | GET     | Serves an object with the specified users' information.                                                                           |
-| /api/articles                      | GET     | Serves an array of all the articles in the database.                                                                              |
-| /api/articles/:article_id          | GET     | Serves an article object depending on the specified article_id.                                                                   |
-| /api/articles/:article_id          | PATCH   | Serves an induvidual article object (based on article_id) with the 'votes' key changed by the value specified in the request body |
-| /api/articles/:article_id/comments | GET     | Serves an array of all the avaliable comments for the given article_id.                                                           |
-| /api/articles/:article_id/comments | POST    | Posts a single comment object with contents dependent on the post request body sent and returns the comment object.                                             |
-| /api/comments/:comment_id          | PATCH   | Patches the specified comment object with the 'votes' key changed by the value specified in the request body and returns the updated object.                         |
-| /api/comments/:comment_id          | DELETE  | Deletes the specified comment (based on comment_id) and returns an object with no content                                         |
+| Endpoint                           | Request | Response                                                                                                                                     |
+| ---------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| /api                               | GET     | Serves up a JSON representation of all the available endpoints of the API.                                                                   |
+| /api/topics                        | GET     | Serves an array of all the topics in the database.                                                                                           |
+| /api/users/:username               | GET     | Serves an object with the specified users' information.                                                                                      |
+| /api/articles                      | GET     | Serves an array of all the articles in the database.                                                                                         |
+| /api/articles/:article_id          | GET     | Serves an article object depending on the specified article_id.                                                                              |
+| /api/articles/:article_id          | PATCH   | Serves an induvidual article object (based on article_id) with the 'votes' key changed by the value specified in the request body            |
+| /api/articles/:article_id/comments | GET     | Serves an array of all the avaliable comments for the given article_id.                                                                      |
+| /api/articles/:article_id/comments | POST    | Posts a single comment object with contents dependent on the post request body sent and returns the comment object.                          |
+| /api/comments/:comment_id          | PATCH   | Patches the specified comment object with the 'votes' key changed by the value specified in the request body and returns the updated object. |
+| /api/comments/:comment_id          | DELETE  | Deletes the specified comment (based on comment_id) and returns an object with no content                                                    |
 
 ## Test Driven Development (TDD)
 
@@ -159,3 +159,14 @@ Runs the tests on all of the aforementioned endpoints.
   - Mocha
   - Chai
   - Supertest
+
+## Update March 2021
+
+A breaking change introduced by pg@^8 caused SSL issues connecting to the back end, see:
+https://help.heroku.com/MDM23G46/why-am-i-getting-an-error-when-i-upgrade-to-pg-8
+
+After viewing the [heroku docs](https://devcenter.heroku.com/articles/heroku-postgresql#connecting-in-node-js) I've found the following CLI command fixes the issue:
+
+```
+heroku config:set PGSSLMODE=no-verify
+```
